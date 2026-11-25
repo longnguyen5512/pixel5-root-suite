@@ -1,0 +1,16 @@
+[submodule "306kernels-redbull"]
+	path = 306kernels-redbull
+	url = https://github.com/longnguyen5512/306kernels-redbull.git
+	branch = 3.4.2-dev
+[submodule "BRENE"]
+	path = BRENE
+	url = https://github.com/longnguyen5512/BRENE.git
+	branch = pixel5-fix
+[submodule "AlwaysStrong"]
+	path = AlwaysStrong
+	url = https://github.com/longnguyen5512/AlwaysStrong.git
+	branch = main
+[submodule "SBrowserFix"]
+	path = SBrowserFix
+	url = https://github.com/longnguyen5512/SBrowserFix.git
+	branch = main
