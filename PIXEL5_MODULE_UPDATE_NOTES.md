@@ -162,5 +162,7 @@ Khi rebase/update kernel mới, đảm bảo giữ lại các bản vá sau:
 1. **Cơ chế hoạt động (`v2.6`):**
    - `prop_watch.sh` dùng `bin/resetprop-rs --wait` (ngủ trên futex, 0% CPU) theo dõi `sys.lineage_settings_{system,secure,global}_version` và `--nuke` ngay khi prop tái sinh; đồng thời giữ FD mở (`busybox tail -n 0 -f`) để ghim inode `open_redirect` cho `*sepolicy.cil`, `*file_contexts`, `/system_ext/etc/permissions/Updater.xml`.
    - `action.sh` hỗ trợ xoá cache verdict cũ của VNeID (`cmwoawp.ogg`, `xwoccmwldwasxm.dat`, `cache/*`, `app_webview/*`) mà vẫn giữ nguyên `SKS_*` (đăng nhập/sinh trắc).
-2. **Lưu ý khi dùng trên Pixel 5 (`redfin`):**
-   - `post-fs-data.sh` và `service.sh` gốc có đoạn fallback `ro.build.flavor=unicorn-user`, `ro.build.fingerprint` (Xiaomi `unicorn`) và đường dẫn `/data/adb/ksu/bin/ksu_susfs`. Khi chạy chung với **BRENE** trên Pixel 5, cần kiểm tra/bỏ đoạn ghi đè `ro.build.flavor` và `ro.build.fingerprint` để tránh gây `Build.FINGERPRINT` drift trên Duck Detector.
+2. **Đã tối ưu cho Pixel 5 (`redfin`):**
+   - Đã gỡ bỏ đoạn ghi đè `ro.build.flavor=unicorn-user` và `ro.build.fingerprint` (Xiaomi `unicorn`) trong `post-fs-data.sh` / `service.sh` để giữ `ro.build.fingerprint` khớp với `Build.FINGERPRINT` khi chạy cùng **BRENE**.
+   - Tự động nhận diện `/data/adb/ksu/bin/ksu_susfs` hoặc `/data/adb/ksu/bin/susfs` trong `service.sh` và `prop_watch.sh`.
+   - Loại trừ `*/framework/*`, `*/overlay/*`, `*-res.apk`, `*idmap*`, `/data/resource-cache/*` khỏi `sus_path` / `sus_path_loop` (chỉ dùng `sus_map`) để `AppZygote` không crash.
