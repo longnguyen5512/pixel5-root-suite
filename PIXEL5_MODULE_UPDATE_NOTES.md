@@ -54,6 +54,9 @@ Mỗi khi tải bản BRENE mới, cần sửa 4 chỗ trong thư mục `module/
    - Đã migrate WebUI sang React + Vite + Tailwind CSS + Material 3 (`npm run build` xuất ra `module/webroot/index.html` và `module/webroot/assets/`).
    - Khi giải nén hoặc cập nhật thủ công vào `/data/adb/modules/brene/`, nhớ `chmod 755 /data/adb/modules/brene/tools/* /data/adb/modules/brene/*.sh` để giữ quyền thực thi cho `tools/susfs`.
 
+9. **Giữ `ro.build.fingerprint` khớp với `Build.FINGERPRINT` trong `boot-completed.sh`**
+   - Không ghi đè `ro.build.fingerprint` / `ro.*.build.fingerprint` / `ro.build.description` theo `ro.build.version.release` + `ro.build.id` (`17/CP2A...`), vì `/system/build.prop` và hằng số `Build.FINGERPRINT` trong framework dùng fingerprint stock Android 14 (`google/redfin/redfin:14/UP1A.231105.001.B2/11260668:user/release-keys`). Ghi đè sẽ gây cảnh báo `ro.build.fingerprint <> Build.FINGERPRINT: Drift` trên Duck Detector.
+
 > **Lưu ý:** Nếu cài BRENE qua `ksud` CLI bị timeout cảnh báo bảo mật (chờ bấm Volume Down 5s), tạm tắt rồi bật lại:
 > `ksud module risk disable && ksud module install BRENE.zip && ksud module risk enable`
 
@@ -108,4 +111,46 @@ Khi rebase/update kernel mới, đảm bảo giữ lại các bản vá sau:
    - Che bit `process:execmem` (`1U << 25`) của `u:r:system_server:s0` (class `2`) đối với app `UID >= 10000` khi query `/sys/fs/selinux/access`.
    - Ẩn các type/rule nhạy cảm (`xposed_file`, `adbroot`, `kernel -> adb_data_file`, `dex2oat -> dex2oat_exec`), chặn probe `/sys/fs/selinux/access` (`-EINVAL`), và cân bằng timing `sel_write_context` / `selinux_setprocattr` (lookup `u:r:app_zygote:s0`).
 3. `fs/proc/task_mmu.c`: Làm sạch `mss` (`Shared_Dirty`, `Private_Dirty`, `Anonymous`) của `webview.apk` mapping `r-xp` đối với `uid >= 10000`.
-4. `net/unix/af_unix.c`, `net/ipv4/af_inet.c`, `net/ipv4/tcp_ipv4.c`, `net/ipv6/tcp_ipv6.c`: Thêm `/sys/module/unix/parameters/adb_tls_port` + `ksu_is_adb_hidden_port(u16 port)` dùng `jdwp_allow_uids` để chặn `connect()` và ẩn port Wireless/USB ADB (`adb_tls_port`, `5555`) khỏi `/proc/net/tcp*`.
+4. `net/unix/af_unix.c`, `net/ipv4/af_inet.c`, `net/ipv4/tcp_ipv4.c`, `net/ipv6/tcp_ipv6.c`: Thêm `/sys/module/unix/parameters/adb_tls_port` + `ksu_is_adb_hidden_port(u16 port)` dùng `jdwp_allow_uids` để chặn `connect()` và ẩn port Wireless/USB ADB (`adb_tls_port`, `5555`) khỏi `/proc/net/tcp*`. Đổi quyền `module_param` `jdwp_allow_uids` và `adb_tls_port` từ `0644` sang `0600`.
+5. `drivers/kernelsu/runtime/boot_event.c`, `ksud_integration.c`: Gọi `stop_init_rc_hook()` và tắt `ksu_vfs_read_hook` tại `on_post_fs_data()`.
+6. `fs/proc/version.c`: Spoof `/proc/version` theo `susfs` cho `uid >= 10000`.
+
+---
+
+## 7. RomFeatureHide (`longnguyen5512/romfeature-hide`)
+
+1. **Scope:** Bật trong Vector / LSPosed Manager với scope **System Framework** (`android`), sau đó reboot.
+2. **An toàn `getPackagesForUid`:** Hook `IPackageManagerBase.getPackagesForUid` phải bỏ qua khi `uid == Binder.getCallingUid()` và trả `null` (tuyệt đối không trả `new String[0]`) khi danh sách sau lọc rỗng — nếu không, các app hệ thống (`org.lineageos.glimpse`, `org.lineageos.audiofx`, `org.lineageos.recorder`, `org.omnirom.logcat`) sẽ crash `ArrayIndexOutOfBoundsException` trong `Settings.getPackageNameForUid()`.
+
+---
+
+## 8. SBrowserFix (`longnguyen5512/SBrowserFix`)
+
+- Cài `SBrowserFix.apk`, bật trong Vector / LSPosed Manager với scope **Samsung Internet** (`com.sec.android.app.sbrowser`) để ép `View.LAYER_TYPE_SOFTWARE` trên các Activity Settings, khắc phục crash `RenderThread` HWUI trên Android 17.
+
+---
+
+## 9. Pixelify-Next (`longnguyen5512/Pixelify-Next`, nhánh `DEV`)
+
+1. **Loại trừ GMS / Play Store / DuckDetector trong `beta/zygisk/src/main/cpp/pixelify.cpp`:**
+   - Thêm `com.google.android.gms`, `com.android.vending`, `com.eltavine.duckdetector` vào `isExcluded()` để không spoof thành Pixel 2/6 Pro/8 Pro và không xung đột với `AlwaysStrong [Inject]`.
+2. **Cấu hình `beta/module/config.prop`:**
+   - Đặt `GLOBAL_SPOOFING=0` (không ghi đè `ro.build.fingerprint` / `ro.product.model` toàn cục), `ENABLE_DPS=0` (Pixel 5 đã có `com.google.android.as` từ NikGapps), `QUICK_SHARE=1` (tích hợp `mosey-p8a`).
+3. **Build cho Pixel 5 (`arm64-v8a`):**
+   - Dùng bản `PixelifyNext-BETA-v7.1-no-VK.zip` khi cài qua `ksud` (đã tối ưu `arm64-v8a` only trong `beta/build.gradle` và sửa `sed -i` tương thích macOS trong `scripts/build_mosey.sh`).
+
+---
+
+## 10. mosey-p8a (`longnguyen5512/mosey-p8a`, nhánh `main`) — Quick Share AirDrop
+
+1. **`wonder_mosey_wild.ko` (`cfg80211`, kernel `4.19.325`):**
+   - Kernel `redbull` bật `CONFIG_CFG80211=y` và tắt `CONFIG_MAC80211`, nên `wonder/wonder_mosey_wild.c` dùng trực tiếp `wiphy_new_nm(..., "wonder")` + `wiphy_register()` và biên dịch theo `306kernels-redbull`. Cập nhật `customize.sh` cho phép `4.19.*`.
+2. **Patch `mosey_server` cho ARMv8.2-A:**
+   - Snapdragon 765G không có ARMv8.3 PAC; phải patch 1619 lệnh `retaa` (`0xd65f0bff`) → `ret` (`0xd65f03c0`) trong `system/vendor/bin/mosey_server` để tránh `SIGILL`.
+3. **`sepolicy.rule` chuẩn KernelSU (`ksud sepolicy`):**
+   - Không dùng `;`, không dùng `:` giữa target/class, không dùng `self` (thay bằng `mosey_server`), không để khoảng trắng đầu/cuối trong `{...}`, và thêm `allow ksu mosey_service service_manager {add find}`.
+4. **`mosey_vintf_patch` (lọc riêng `com.google.pixel.moseyservice`):**
+   - `servicemanager` cache Device HAL Manifest trước `post-fs-data` và `/vendor` không còn trống để chép `manifest_mosey.xml`. `wonder/mosey_vintf_patch.c` patch in-memory check `hasAidlInstance` trong `servicemanager` **chỉ** cho `com.google.pixel.moseyservice` (29 ký tự, prefix `com.goog`).
+   - **Cảnh báo:** Tuyệt đối không trả `true` cho mọi HAL vì sẽ làm `libgui` chờ `android.hardware.graphics.allocator.IAllocator/default` (AIDL) vô hạn thay vì fallback HIDL `@4.0`, gây ANR Google Play Services.
+5. **`service.sh` & `customize.sh`:**
+   - Cấp quyền `0755` cho `sqlite3_mosey`, `rename_phy`, `mosey_vintf_patch` trong `customize.sh`; kiểm tra `/proc/$oldpid/cmdline` chứa `mosey_server` trước khi skip theo `mosey_server.pid` và chạy `mosey_vintf_patch` trước khi start `mosey_server`.
