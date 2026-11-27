@@ -20,7 +20,7 @@ Bộ tổng hợp 5 repository phục vụ cài đặt, tối ưu và vượt qu
 
 Xem thêm hướng dẫn cập nhật và lưu ý cấu hình từng module trên Pixel 5 tại [`PIXEL5_MODULE_UPDATE_NOTES.md`](./PIXEL5_MODULE_UPDATE_NOTES.md).
 
-## Clone đầy đủ cả 4 repo
+## Clone đầy đủ cả 5 repo
 
 ```bash
 git clone --recursive https://github.com/longnguyen5512/pixel5-root-suite.git
