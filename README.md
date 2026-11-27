@@ -21,7 +21,8 @@ pixel5-root-suite/
 ├── SBrowserFix/                     ← Module LSPosed/Vector fix crash RenderThread Samsung Internet
 ├── RomFeatureHide/                  ← Module LSPosed/Vector ẩn feature/permission/package custom ROM
 ├── Pixelify-Next/                   ← Module bật tính năng Pixel độc quyền (nhánh DEV, tối ưu arm64-v8a)
-└── mosey-p8a/                       ← Module Quick Share AirDrop (wonder phy cfg80211 + mosey_vintf_patch)
+├── mosey-p8a/                       ← Module Quick Share AirDrop (wonder phy cfg80211 + mosey_vintf_patch)
+└── vneid_persist/                   ← Module dọn prop lineage/adb_root (resetprop-rs) + VFS-pinned open_redirect
 ```
 
 | Thành phần | Repository | Nhánh chính | Vai trò |
@@ -33,6 +34,7 @@ pixel5-root-suite/
 | **RomFeatureHide** | [`longnguyen5512/romfeature-hide`](https://github.com/longnguyen5512/romfeature-hide) | `main` | Module LSPosed / Vector (`com.fix.romfeatures`) ẩn feature, permission và package custom ROM (`org.lineageos.*`, `org.omnirom.*`, ...) khỏi app bên thứ ba trong `system_server`, đồng thời giữ nguyên lookup cho chính UID của app đang khởi động. |
 | **Pixelify-Next** | [`longnguyen5512/Pixelify-Next`](https://github.com/longnguyen5512/Pixelify-Next) | `DEV` | Fork của `BasGame1/Pixelify-Next`; loại trừ `gms`/`vending`/`duckdetector` khỏi Zygisk spoof để không xung đột `AlwaysStrong`, tắt `GLOBAL_SPOOFING` và `ENABLE_DPS`, build `arm64-v8a` only kèm `mosey-p8a`. |
 | **mosey-p8a** | [`longnguyen5512/mosey-p8a`](https://github.com/longnguyen5512/mosey-p8a) | `main` | Fork của `BasGame1/mosey-p8a`; chuyển `wonder_mosey_wild.c` sang `cfg80211` cho kernel `4.19.325`, patch 1619 lệnh `retaa` → `ret` trong `mosey_server`, chuẩn hoá `sepolicy.rule` cho `ksud`, và thêm `mosey_vintf_patch` lọc riêng `com.google.pixel.moseyservice`. |
+| **vneid_persist** | [`longnguyen5512/vneid_persist`](https://github.com/longnguyen5512/vneid_persist) | `main` | Module KernelSU-Next + SuSFS (`v2.6`) dùng `resetprop-rs --wait` (0% CPU futex) tự `--nuke` các prop `sys.lineage_settings_*_version` tái sinh, giữ inode `open_redirect` cho `sepolicy.cil`/`file_contexts`/`Updater.xml` và kèm Action xoá cache verdict của VNeID. |
 
 ### Tự build lại Kernel (`306kernels-redbull`)
 
@@ -109,7 +111,7 @@ cd SBrowserFix && ./build.sh      # xuất SBrowserFix.apk
 
 ## 4. Clone & Cập nhật
 
-Clone đầy đủ cả 7 repository thành phần:
+Clone đầy đủ cả 8 repository thành phần:
 
 ```bash
 git clone --recursive https://github.com/longnguyen5512/pixel5-root-suite.git

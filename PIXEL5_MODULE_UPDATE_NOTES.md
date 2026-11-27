@@ -154,3 +154,13 @@ Khi rebase/update kernel mới, đảm bảo giữ lại các bản vá sau:
    - **Cảnh báo:** Tuyệt đối không trả `true` cho mọi HAL vì sẽ làm `libgui` chờ `android.hardware.graphics.allocator.IAllocator/default` (AIDL) vô hạn thay vì fallback HIDL `@4.0`, gây ANR Google Play Services.
 5. **`service.sh` & `customize.sh`:**
    - Cấp quyền `0755` cho `sqlite3_mosey`, `rename_phy`, `mosey_vintf_patch` trong `customize.sh`; kiểm tra `/proc/$oldpid/cmdline` chứa `mosey_server` trước khi skip theo `mosey_server.pid` và chạy `mosey_vintf_patch` trước khi start `mosey_server`.
+
+---
+
+## 11. vneid_persist (`longnguyen5512/vneid_persist`, nhánh `main`)
+
+1. **Cơ chế hoạt động (`v2.6`):**
+   - `prop_watch.sh` dùng `bin/resetprop-rs --wait` (ngủ trên futex, 0% CPU) theo dõi `sys.lineage_settings_{system,secure,global}_version` và `--nuke` ngay khi prop tái sinh; đồng thời giữ FD mở (`busybox tail -n 0 -f`) để ghim inode `open_redirect` cho `*sepolicy.cil`, `*file_contexts`, `/system_ext/etc/permissions/Updater.xml`.
+   - `action.sh` hỗ trợ xoá cache verdict cũ của VNeID (`cmwoawp.ogg`, `xwoccmwldwasxm.dat`, `cache/*`, `app_webview/*`) mà vẫn giữ nguyên `SKS_*` (đăng nhập/sinh trắc).
+2. **Lưu ý khi dùng trên Pixel 5 (`redfin`):**
+   - `post-fs-data.sh` và `service.sh` gốc có đoạn fallback `ro.build.flavor=unicorn-user`, `ro.build.fingerprint` (Xiaomi `unicorn`) và đường dẫn `/data/adb/ksu/bin/ksu_susfs`. Khi chạy chung với **BRENE** trên Pixel 5, cần kiểm tra/bỏ đoạn ghi đè `ro.build.flavor` và `ro.build.fingerprint` để tránh gây `Build.FINGERPRINT` drift trên Duck Detector.

@@ -26,3 +26,7 @@
 	path = mosey-p8a
 	url = https://github.com/longnguyen5512/mosey-p8a.git
 	branch = main
+[submodule "vneid_persist"]
+	path = vneid_persist
+	url = https://github.com/longnguyen5512/vneid_persist.git
+	branch = main
