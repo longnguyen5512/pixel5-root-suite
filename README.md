@@ -1,6 +1,6 @@
 # Pixel 5 (`redfin`) Android 17 Root & Hardening Suite
 
-Bộ tổng hợp 4 repository phục vụ cài đặt, tối ưu và vượt qua các bài kiểm tra môi trường/attestation trên **Google Pixel 5 (`redfin`) — Android 17 (API 37)** với **KernelSU-Next + SUSFS**.
+Bộ tổng hợp 5 repository phục vụ cài đặt, tối ưu và vượt qua các bài kiểm tra môi trường/attestation trên **Google Pixel 5 (`redfin`) — Android 17 (API 37)** với **KernelSU-Next + SUSFS**.
 
 ---
 
@@ -12,6 +12,7 @@ Bộ tổng hợp 4 repository phục vụ cài đặt, tối ưu và vượt qu
 | **BRENE** | [`longnguyen5512/BRENE`](https://github.com/longnguyen5512/BRENE) | `pixel5-fix` | Module ẩn môi trường/ROM + Zygisk hook trong `system_server` (`SettingsBinderProxy`, `ActivityBinderProxy`, `AccessibilityBinderProxy`) ẩn `adb_enabled`, `adb_wifi_enabled`, `development_settings_enabled` và loại bỏ `"adb"` khỏi broadcast `android.hardware.usb.action.USB_STATE` cho các app mục tiêu (hỗ trợ cả `isolated_app`). |
 | **AlwaysStrong** | [`longnguyen5512/AlwaysStrong`](https://github.com/longnguyen5512/AlwaysStrong) | `main` | Fork của `Evokerr/AlwaysStrong` (TEESimulator-RS + PIF), bổ sung patch Android 17 (`vendor/teesimulator-rs-android17-keystore2.patch`) giữ nguyên chuỗi exception Rust gốc của `keystore2` (`Error::Rc(r#KEY_NOT_FOUND)`) và tối ưu `getNumberOfEntries` trong `tee_classes.dex`. |
 | **SBrowserFix** | [`longnguyen5512/SBrowserFix`](https://github.com/longnguyen5512/SBrowserFix) | `main` | Module LSPosed / Vector (`com.fix.sbrowser`) ép `View.LAYER_TYPE_SOFTWARE` trên các Activity Settings của Samsung Internet để khắc phục lỗi crash `RenderThread` HWUI trên Android 17. |
+| **RomFeatureHide** | [`longnguyen5512/romfeature-hide`](https://github.com/longnguyen5512/romfeature-hide) | `main` | Module LSPosed / Vector (`com.fix.romfeatures`) ẩn feature, permission và package của custom ROM (`org.lineageos.*`, `org.omnirom.*`, ...) khỏi các app khác trong `system_server`, đồng thời giữ nguyên lookup cho chính UID của app khi khởi động. |
 
 ---
 

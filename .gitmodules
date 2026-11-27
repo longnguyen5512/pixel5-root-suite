@@ -14,3 +14,7 @@
 	path = SBrowserFix
 	url = https://github.com/longnguyen5512/SBrowserFix.git
 	branch = main
+[submodule "RomFeatureHide"]
+	path = RomFeatureHide
+	url = https://github.com/longnguyen5512/romfeature-hide.git
+	branch = main
