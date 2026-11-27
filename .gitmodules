@@ -18,3 +18,11 @@
 	path = RomFeatureHide
 	url = https://github.com/longnguyen5512/romfeature-hide.git
 	branch = main
+[submodule "Pixelify-Next"]
+	path = Pixelify-Next
+	url = https://github.com/longnguyen5512/Pixelify-Next.git
+	branch = DEV
+[submodule "mosey-p8a"]
+	path = mosey-p8a
+	url = https://github.com/longnguyen5512/mosey-p8a.git
+	branch = main

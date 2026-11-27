@@ -19,7 +19,9 @@ pixel5-root-suite/
 ├── BRENE/                           ← Module ẩn ROM/root + Zygisk hook trong system_server
 ├── AlwaysStrong/                    ← Fork TEESimulator-RS + PIF (patch Android 17 keystore2)
 ├── SBrowserFix/                     ← Module LSPosed/Vector fix crash RenderThread Samsung Internet
-└── RomFeatureHide/                  ← Module LSPosed/Vector ẩn feature/permission/package custom ROM
+├── RomFeatureHide/                  ← Module LSPosed/Vector ẩn feature/permission/package custom ROM
+├── Pixelify-Next/                   ← Module bật tính năng Pixel độc quyền (nhánh DEV, tối ưu arm64-v8a)
+└── mosey-p8a/                       ← Module Quick Share AirDrop (wonder phy cfg80211 + mosey_vintf_patch)
 ```
 
 | Thành phần | Repository | Nhánh chính | Vai trò |
@@ -29,6 +31,8 @@ pixel5-root-suite/
 | **AlwaysStrong** | [`longnguyen5512/AlwaysStrong`](https://github.com/longnguyen5512/AlwaysStrong) | `main` | Fork của `Evokerr/AlwaysStrong` (TEESimulator-RS + PIF), bổ sung patch Android 17 (`vendor/teesimulator-rs-android17-keystore2.patch`) giữ nguyên chuỗi exception Rust gốc của `keystore2` (`Error::Rc(r#KEY_NOT_FOUND)`). |
 | **SBrowserFix** | [`longnguyen5512/SBrowserFix`](https://github.com/longnguyen5512/SBrowserFix) | `main` | Module LSPosed / Vector (`com.fix.sbrowser`) ép `View.LAYER_TYPE_SOFTWARE` trên các Activity Settings của Samsung Internet để khắc phục lỗi crash `RenderThread` HWUI trên Android 17. |
 | **RomFeatureHide** | [`longnguyen5512/romfeature-hide`](https://github.com/longnguyen5512/romfeature-hide) | `main` | Module LSPosed / Vector (`com.fix.romfeatures`) ẩn feature, permission và package custom ROM (`org.lineageos.*`, `org.omnirom.*`, ...) khỏi app bên thứ ba trong `system_server`, đồng thời giữ nguyên lookup cho chính UID của app đang khởi động. |
+| **Pixelify-Next** | [`longnguyen5512/Pixelify-Next`](https://github.com/longnguyen5512/Pixelify-Next) | `DEV` | Fork của `BasGame1/Pixelify-Next`; loại trừ `gms`/`vending`/`duckdetector` khỏi Zygisk spoof để không xung đột `AlwaysStrong`, tắt `GLOBAL_SPOOFING` và `ENABLE_DPS`, build `arm64-v8a` only kèm `mosey-p8a`. |
+| **mosey-p8a** | [`longnguyen5512/mosey-p8a`](https://github.com/longnguyen5512/mosey-p8a) | `main` | Fork của `BasGame1/mosey-p8a`; chuyển `wonder_mosey_wild.c` sang `cfg80211` cho kernel `4.19.325`, patch 1619 lệnh `retaa` → `ret` trong `mosey_server`, chuẩn hoá `sepolicy.rule` cho `ksud`, và thêm `mosey_vintf_patch` lọc riêng `com.google.pixel.moseyservice`. |
 
 ### Tự build lại Kernel (`306kernels-redbull`)
 
@@ -105,7 +109,7 @@ cd SBrowserFix && ./build.sh      # xuất SBrowserFix.apk
 
 ## 4. Clone & Cập nhật
 
-Clone đầy đủ cả 5 repository thành phần:
+Clone đầy đủ cả 7 repository thành phần:
 
 ```bash
 git clone --recursive https://github.com/longnguyen5512/pixel5-root-suite.git
