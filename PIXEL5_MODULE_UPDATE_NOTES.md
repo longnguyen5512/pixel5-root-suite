@@ -160,8 +160,10 @@ Khi rebase/update kernel mới, đảm bảo giữ lại các bản vá sau:
 
 ## 11. vneid_persist (`longnguyen5512/vneid_persist`, nhánh `main`)
 
-1. **Cơ chế hoạt động (`v2.6`):**
+1. **Cơ chế hoạt động (`v2.7`):**
    - `prop_watch.sh` dùng `bin/resetprop-rs --wait` (ngủ trên futex, 0% CPU) theo dõi `sys.lineage_settings_{system,secure,global}_version` và `--nuke` ngay khi prop tái sinh; đồng thời giữ FD mở (`busybox tail -n 0 -f`) để ghim inode `open_redirect` cho `*sepolicy.cil`, `*file_contexts`, `/system_ext/etc/permissions/Updater.xml`.
+   - `post-fs-data.sh` & `service.sh` dọn prop `lineage`/`adb_root`, đặt `init.svc.adb_root=""` + `init.svc.adbd="stopped"`, và đổi `test-keys` → `release-keys` trong `ro.build.display.id` / `ro.build.keys`.
+   - Khi **NoMount** (`nm`) hoạt động, `service.sh` thêm `nm rule add --whiteout <path> --uid <uid>` riêng cho `com.vnid` (và `target_pkgs.txt` nếu có) trên toàn bộ `*lineage*`, `*crdroid*` và `/system/addon.d` mà không ảnh hưởng `AppZygote` / `system_server`.
    - `action.sh` hỗ trợ xoá cache verdict cũ của VNeID (`cmwoawp.ogg`, `xwoccmwldwasxm.dat`, `cache/*`, `app_webview/*`) mà vẫn giữ nguyên `SKS_*` (đăng nhập/sinh trắc).
 2. **Đã tối ưu cho Pixel 5 (`redfin`):**
    - Đã gỡ bỏ đoạn ghi đè `ro.build.flavor=unicorn-user` và `ro.build.fingerprint` (Xiaomi `unicorn`) trong `post-fs-data.sh` / `service.sh` để giữ `ro.build.fingerprint` khớp với `Build.FINGERPRINT` khi chạy cùng **BRENE**.
