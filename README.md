@@ -22,7 +22,8 @@ pixel5-root-suite/
 ├── RomFeatureHide/                  ← Module LSPosed/Vector ẩn feature/permission/package custom ROM
 ├── Pixelify-Next/                   ← Module bật tính năng Pixel độc quyền (nhánh DEV, tối ưu arm64-v8a)
 ├── mosey-p8a/                       ← Module Quick Share AirDrop (wonder phy cfg80211 + mosey_vintf_patch)
-└── vneid_persist/                   ← Module dọn prop lineage/adb_root (resetprop-rs) + VFS-pinned open_redirect
+├── vneid_persist/                   ← Module dọn prop lineage/adb_root (resetprop-rs) + VFS-pinned open_redirect
+└── redbull_duck_hide_kpm/           ← KPatch-Next KPM ẩn root/Duck Detector + fallback NoMount/HybridMount VFS
 ```
 
 | Thành phần | Repository | Nhánh chính | Vai trò |
@@ -34,7 +35,8 @@ pixel5-root-suite/
 | **RomFeatureHide** | [`longnguyen5512/romfeature-hide`](https://github.com/longnguyen5512/romfeature-hide) | `main` | Module LSPosed / Vector (`com.fix.romfeatures`) ẩn feature, permission và package custom ROM (`org.lineageos.*`, `org.omnirom.*`, ...) khỏi app bên thứ ba trong `system_server`, đồng thời giữ nguyên lookup cho chính UID của app đang khởi động. |
 | **Pixelify-Next** | [`longnguyen5512/Pixelify-Next`](https://github.com/longnguyen5512/Pixelify-Next) | `DEV` | Fork của `BasGame1/Pixelify-Next`; loại trừ `gms`/`vending`/`duckdetector` khỏi Zygisk spoof để không xung đột `AlwaysStrong`, tắt `GLOBAL_SPOOFING` và `ENABLE_DPS`, build `arm64-v8a` only kèm `mosey-p8a`. |
 | **mosey-p8a** | [`longnguyen5512/mosey-p8a`](https://github.com/longnguyen5512/mosey-p8a) | `main` | Fork của `BasGame1/mosey-p8a`; chuyển `wonder_mosey_wild.c` sang `cfg80211` cho kernel `4.19.325`, patch 1619 lệnh `retaa` → `ret` trong `mosey_server`, chuẩn hoá `sepolicy.rule` cho `ksud`, và thêm `mosey_vintf_patch` lọc riêng `com.google.pixel.moseyservice`. |
-| **vneid_persist** | [`longnguyen5512/vneid_persist`](https://github.com/longnguyen5512/vneid_persist) | `main` | Module KernelSU-Next + SuSFS + NoMount (`v2.7`) dùng `resetprop-rs --wait` (0% CPU futex) tự `--nuke` prop `lineage`/`adb_root`, đặt `init.svc.adbd=stopped`, chuẩn hoá `ro.build.display.id` (`release-keys`), áp dụng NoMount per-UID `--whiteout` (`*lineage*`/`*crdroid*`/`/system/addon.d`) cho `com.vnid`, giữ inode `open_redirect` cho `sepolicy.cil`/`file_contexts`/`Updater.xml` và kèm Action xoá cache verdict của VNeID. |
+| **vneid_persist** | [`longnguyen5512/vneid_persist`](https://github.com/longnguyen5512/vneid_persist) | `main` | Module KernelSU-Next + SuSFS + NoMount/HybridMount (`v2.8`) dùng `resetprop-rs --wait` (0% CPU futex) tự `--nuke` prop `lineage`/`adb_root`, đặt `init.svc.adbd=stopped`, chuẩn hoá `ro.build.display.id` (`release-keys`), tự động nhận diện NoMount hoặc Hybrid Mount VFS để áp dụng per-UID `--whiteout` (`*lineage*`/`*crdroid*`/`/system/addon.d`) cho `com.vnid`, giữ inode `open_redirect` cho `sepolicy.cil`/`file_contexts`/`Updater.xml` và kèm Action xoá cache verdict của VNeID. |
+| **redbull_duck_hide_kpm** | [`longnguyen5512/redbull_duck_hide_kpm`](https://github.com/longnguyen5512/redbull_duck_hide_kpm) | `main` | KPatch-Next KPM (`v1.1.0`) chặn đường dẫn `/data/adb`/`su`/`/proc/kallsyms` & làm sạch hậu tố `uname` cho `uid >= 10000`, đồng thời tích hợp fallback backend `nomount` (`v23`) & `hybridmount` (`hm1`) khi kernel chưa hỗ trợ sẵn. |
 
 ### Tự build lại Kernel (`306kernels-redbull`)
 

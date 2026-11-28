@@ -160,12 +160,21 @@ Khi rebase/update kernel mới, đảm bảo giữ lại các bản vá sau:
 
 ## 11. vneid_persist (`longnguyen5512/vneid_persist`, nhánh `main`)
 
-1. **Cơ chế hoạt động (`v2.7`):**
+1. **Cơ chế hoạt động (`v2.8`):**
    - `prop_watch.sh` dùng `bin/resetprop-rs --wait` (ngủ trên futex, 0% CPU) theo dõi `sys.lineage_settings_{system,secure,global}_version` và `--nuke` ngay khi prop tái sinh; đồng thời giữ FD mở (`busybox tail -n 0 -f`) để ghim inode `open_redirect` cho `*sepolicy.cil`, `*file_contexts`, `/system_ext/etc/permissions/Updater.xml`.
    - `post-fs-data.sh` & `service.sh` dọn prop `lineage`/`adb_root`, đặt `init.svc.adb_root=""` + `init.svc.adbd="stopped"`, và đổi `test-keys` → `release-keys` trong `ro.build.display.id` / `ro.build.keys`.
-   - Khi **NoMount** (`nm`) hoạt động, `service.sh` thêm `nm rule add --whiteout <path> --uid <uid>` riêng cho `com.vnid` (và `target_pkgs.txt` nếu có) trên toàn bộ `*lineage*`, `*crdroid*` và `/system/addon.d` mà không ảnh hưởng `AppZygote` / `system_server`.
+   - `service.sh` tự động nhận diện **NoMount** (`nm`) hoặc **Hybrid Mount VFS** (`hybrid-mount vfs`) để thêm `rule add --whiteout <path> --uid <uid>` riêng cho `com.vnid` (và `target_pkgs.txt` nếu có) trên toàn bộ `*lineage*`, `*crdroid*` và `/system/addon.d` mà không ảnh hưởng `AppZygote` / `system_server`.
    - `action.sh` hỗ trợ xoá cache verdict cũ của VNeID (`cmwoawp.ogg`, `xwoccmwldwasxm.dat`, `cache/*`, `app_webview/*`) mà vẫn giữ nguyên `SKS_*` (đăng nhập/sinh trắc).
 2. **Đã tối ưu cho Pixel 5 (`redfin`):**
    - Đã gỡ bỏ đoạn ghi đè `ro.build.flavor=unicorn-user` và `ro.build.fingerprint` (Xiaomi `unicorn`) trong `post-fs-data.sh` / `service.sh` để giữ `ro.build.fingerprint` khớp với `Build.FINGERPRINT` khi chạy cùng **BRENE**.
    - Tự động nhận diện `/data/adb/ksu/bin/ksu_susfs` hoặc `/data/adb/ksu/bin/susfs` trong `service.sh` và `prop_watch.sh`.
-   - Loại trừ `*/framework/*`, `*/overlay/*`, `*-res.apk`, `*idmap*`, `/data/resource-cache/*` khỏi `sus_path` / `sus_path_loop` (chỉ dùng `sus_map`) để `AppZygote` không crash.
+   - Loại trừ `*/framework/*`, `*/overlay/*`, `*-res.apk`, `*/app/*`, `*/priv-app/*`, `*idmap*`, `/data/resource-cache/*` khỏi `sus_path` / `sus_path_loop` (chỉ dùng `sus_map`) để `AppZygote` và các app hệ thống như `org.omnirom.omnijaws` không bị crash.
+
+---
+
+## 12. redbull_duck_hide_kpm (`longnguyen5512/redbull_duck_hide_kpm`, nhánh `main`)
+
+1. **Chức năng (`v1.1.0`, `redbull_duck_hide.kpm`):**
+   - **Ẩn root & Duck Detector (`uid >= 10000`):** Hook `openat`, `faccessat`, `faccessat2`, `newfstatat` để trả `-ENOENT` cho `/data/adb`, `/data/adb/*`, `su`, `superuser.rc` và `-EACCES` cho `/proc/kallsyms`, `/proc/modules`; hook `uname` để xoá hậu tố `-redbullNEXT`, `-dirty` khỏi `utsname.release`.
+   - **Fallback VFS (`nomount` `v23` & `hybridmount` `hm1`):** Tự kiểm tra `register_key_type()` khi `KPM_INIT`; nếu kernel đã tích hợp sẵn (`-EEXIST` như `306kernels-redbull`) thì bỏ qua để tránh trùng hook, còn nếu kernel chưa hỗ trợ thì tự đăng ký `key_type` và hook `getname_flags()` để xử lý VFS redirect / whiteout.
+2. **Cài đặt:** Chép `redbull_duck_hide.kpm` vào `/data/adb/kp-next/kpm/` (yêu cầu `boot.img` đã được patch bằng **KPatch-Next** WebUI hoặc `boot_patch.sh`).

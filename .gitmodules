@@ -30,3 +30,7 @@
 	path = vneid_persist
 	url = https://github.com/longnguyen5512/vneid_persist.git
 	branch = main
+[submodule "redbull_duck_hide_kpm"]
+	path = redbull_duck_hide_kpm
+	url = https://github.com/longnguyen5512/redbull_duck_hide_kpm.git
+	branch = main
