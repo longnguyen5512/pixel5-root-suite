@@ -4,7 +4,7 @@ Bộ tổng hợp repository, bản vá kernel, module Zygisk/LSPosed và hướ
 
 - **Thiết bị:** Google Pixel 5 (`redfin`), Snapdragon 765G (`ARMv8.2-A`, không có ARMv8.3 PAC)
 - **ROM:** crDroid 13.1 / LineageOS 24 base (Android 17, API 37), `arm64-v8a`
-- **Root:** KernelSU-Next v3.4.2-legacy-susfs + SUSFS + NeoZygisk + Hybrid Mount
+- **Root:** KernelSU-Next v3.4.2-legacy-susfs + SUSFS + NeoZygisk + NoMount / Hybrid Mount VFS
 - **Kernel tuỳ biến:** [`306kernels-redbull`](https://github.com/longnguyen5512/306kernels-redbull) (`4.19.325-cip136-st20`, nhánh `3.4.2-dev`)
 
 ---
@@ -15,7 +15,7 @@ Bộ tổng hợp repository, bản vá kernel, module Zygisk/LSPosed và hướ
 pixel5-root-suite/
 ├── README.md                        ← tài liệu tổng hợp & hướng dẫn cài đặt
 ├── PIXEL5_MODULE_UPDATE_NOTES.md    ← checklist chi tiết trước khi update từng module
-├── 306kernels-redbull/              ← Kernel 4.19.325 + KSU-Next + SUSFS + Hybrid Mount VFS + SELinux/proc/af_unix patches
+├── 306kernels-redbull/              ← Kernel 4.19.325 + KSU-Next + SUSFS + NoMount & Hybrid Mount VFS + SELinux/proc/af_unix patches
 ├── BRENE/                           ← Module ẩn ROM/root + Zygisk hook trong system_server
 ├── AlwaysStrong/                    ← Fork TEESimulator-RS + PIF (patch Android 17 keystore2)
 ├── SBrowserFix/                     ← Module LSPosed/Vector fix crash RenderThread Samsung Internet
@@ -27,7 +27,7 @@ pixel5-root-suite/
 
 | Thành phần | Repository | Nhánh chính | Vai trò |
 |---|---|---|---|
-| **Kernel** | [`longnguyen5512/306kernels-redbull`](https://github.com/longnguyen5512/306kernels-redbull) | `3.4.2-dev` | Kernel `4.19.325` + KernelSU-Next + SUSFS + Hybrid Mount VFS (`CONFIG_HYBRIDMOUNT=y`); vá timing `selinux_hide` (2-slot double-hash không nhánh), tách `get_anon_bdev()`, cấp phát `mnt_alloc_id()` đơn điệu, dừng `init_rc_hook`/`vfs_read_hook` sau `post-fs-data`, spoof `/proc/version`, và đặt quyền `0600` cho `jdwp_allow_uids`/`adb_tls_port`. |
+| **Kernel** | [`longnguyen5512/306kernels-redbull`](https://github.com/longnguyen5512/306kernels-redbull) | `3.4.2-dev` | Kernel `4.19.325` + KernelSU-Next + SUSFS + NoMount (`CONFIG_NOMOUNT=y`) & Hybrid Mount (`CONFIG_HYBRIDMOUNT=y`) VFS built-in; vá timing `selinux_hide` (2-slot double-hash không nhánh), tách `get_anon_bdev()`, cấp phát `mnt_alloc_id()` đơn điệu, dừng `init_rc_hook`/`vfs_read_hook` sau `post-fs-data`, spoof `/proc/version`, và đặt quyền `0600` cho `jdwp_allow_uids`/`adb_tls_port`. |
 | **BRENE** | [`longnguyen5512/BRENE`](https://github.com/longnguyen5512/BRENE) | `pixel5-fix` | Ẩn đường dẫn/prop custom ROM + Zygisk hook trong `system_server` (`SettingsBinderProxy`, `ActivityBinderProxy`, `AccessibilityBinderProxy`) ẩn `adb_enabled`, `adb_wifi_enabled`, `development_settings_enabled`, lọc `"adb"` khỏi broadcast `USB_STATE` và giữ `ro.build.fingerprint` khớp với `Build.FINGERPRINT`. |
 | **AlwaysStrong** | [`longnguyen5512/AlwaysStrong`](https://github.com/longnguyen5512/AlwaysStrong) | `main` | Fork của `Evokerr/AlwaysStrong` (TEESimulator-RS + PIF), bổ sung patch Android 17 (`vendor/teesimulator-rs-android17-keystore2.patch`) giữ nguyên chuỗi exception Rust gốc của `keystore2` (`Error::Rc(r#KEY_NOT_FOUND)`). |
 | **SBrowserFix** | [`longnguyen5512/SBrowserFix`](https://github.com/longnguyen5512/SBrowserFix) | `main` | Module LSPosed / Vector (`com.fix.sbrowser`) ép `View.LAYER_TYPE_SOFTWARE` trên các Activity Settings của Samsung Internet để khắc phục lỗi crash `RenderThread` HWUI trên Android 17. |
@@ -70,7 +70,7 @@ cd SBrowserFix && ./build.sh      # xuất SBrowserFix.apk
    - `drivers/kernelsu/feature/selinux_hide.c` + `security/selinux/*`: che bit `process:execmem` của `u:r:system_server:s0` cho `uid >= 10000` (giữ HMA-OSS chạy ổn định mà không lộ `DirtySepolicy`), ẩn `xposed_file`/`adbroot`, cân bằng timing `selinux_setprocattr`.
    - `drivers/kernelsu/runtime/boot_event.c` + `ksud_integration.c`: tắt `ksu_init_rc_hook` và `ksu_vfs_read_hook` ngay tại `on_post_fs_data()`.
    - `fs/proc/version.c` & `net/unix/af_unix.c`: spoof `/proc/version` theo `susfs` cho `uid >= 10000`, đổi quyền `jdwp_allow_uids`/`adb_tls_port` sang `0600` và ẩn port ADB trong `/proc/net/tcp*`.
-   - `fs/hybridmount/` + `redbull*_defconfig`: tích hợp Hybrid Mount VFS built-in (`CONFIG_HYBRIDMOUNT=y`, `hm1`) giúp `hybrid_mount` hoạt động trực tiếp ở tầng VFS trong kernel (`/sys/module/hybridmount`).
+   - `fs/nomount/` & `fs/hybridmount/` + `redbull*_defconfig`: tích hợp song song cả **NoMount** (`CONFIG_NOMOUNT=y`, protocol `23`, `/sys/module/nomount`) và **Hybrid Mount VFS** (`CONFIG_HYBRIDMOUNT=y`, `hm1`, `/sys/module/hybridmount`), cho phép chuyển đổi qua lại giữa module NoMount và Hybrid Mount mà không cần flash lại kernel.
 2. **BRENE (`pixel5-fix`)**:
    - Không dùng `Hot Install` và `resetprop -c --force` (tránh treo máy trên Android 17).
    - Loại trừ `*/framework/*`, `*/overlay/*`, `*-res.apk`, `*idmap*`, `/data/resource-cache/*` khỏi `brene_sus_path_loop` (chỉ dùng `brene_sus_map`) để `app_zygote` không crash `JNI FatalError`.
@@ -88,7 +88,7 @@ cd SBrowserFix && ./build.sh      # xuất SBrowserFix.apk
 
 1. **Flash Kernel** (`306kernels-redbull-*.zip`) qua `adb sideload`.
 2. **Metamodule & Zygisk**:
-   - Cài `Hybrid Mount` (hoặc metamodule mount tương đương).
+   - Cài **NoMount** (hoặc `Hybrid Mount`) làm metamodule VFS (chỉ giữ 1 metamodule tại một thời điểm; muốn đổi thì gỡ metamodule cũ, reboot rồi cài metamodule mới).
    - Cài **NeoZygisk** (`zygisksu`) trước các module Zygisk khác.
 3. **LSPosed / Vector & Ẩn App**:
    - Cài **Vector** (`zygisk_vector`, ví dụ `v2.2-3080`) — bật `config_hide_vector_injection=1` trong BRENE.

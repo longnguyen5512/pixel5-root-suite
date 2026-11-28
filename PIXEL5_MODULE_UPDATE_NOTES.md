@@ -114,7 +114,7 @@ Khi rebase/update kernel mới, đảm bảo giữ lại các bản vá sau:
 4. `net/unix/af_unix.c`, `net/ipv4/af_inet.c`, `net/ipv4/tcp_ipv4.c`, `net/ipv6/tcp_ipv6.c`: Thêm `/sys/module/unix/parameters/adb_tls_port` + `ksu_is_adb_hidden_port(u16 port)` dùng `jdwp_allow_uids` để chặn `connect()` và ẩn port Wireless/USB ADB (`adb_tls_port`, `5555`) khỏi `/proc/net/tcp*`. Đổi quyền `module_param` `jdwp_allow_uids` và `adb_tls_port` từ `0644` sang `0600`.
 5. `drivers/kernelsu/runtime/boot_event.c`, `ksud_integration.c`: Gọi `stop_init_rc_hook()` và tắt `ksu_vfs_read_hook` tại `on_post_fs_data()`.
 6. `fs/proc/version.c`: Spoof `/proc/version` theo `susfs` cho `uid >= 10000`.
-7. `fs/hybridmount/`, `fs/Kconfig`, `fs/Makefile`, `arch/arm64/configs/redbull_defconfig`, `arch/arm64/configs/redbull-gki_defconfig`: Tích hợp Hybrid Mount VFS built-in (`CONFIG_HYBRIDMOUNT=y`, giao thức `hm1`) từ `Hybrid-Mount/meta-hybrid_mount` (`module/vfs/setup.sh`) để `hybrid_mount` sử dụng VFS kernel trực tiếp (`/sys/module/hybridmount`).
+7. `fs/nomount/`, `fs/hybridmount/`, `fs/Kconfig`, `fs/Makefile`, `arch/arm64/configs/redbull_defconfig`, `arch/arm64/configs/redbull-gki_defconfig`: Tích hợp song song cả **NoMount** (`CONFIG_NOMOUNT=y`, protocol `23`, `/sys/module/nomount`) từ `maxsteeel/nomount` và **Hybrid Mount VFS** (`CONFIG_HYBRIDMOUNT=y`, `hm1`, `/sys/module/hybridmount`) từ `Hybrid-Mount/meta-hybrid_mount`, cho phép chuyển qua lại giữa 2 metamodule mà không cần flash lại kernel (lưu ý: `ksud` chỉ cho phép 1 metamodule tại một thời điểm — khi đổi cần gỡ metamodule cũ, reboot rồi mới cài metamodule mới).
 
 ---
 
